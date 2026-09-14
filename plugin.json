@@ -1,0 +1,9 @@
+{
+  "name": "brag-sheet",
+  "description": "Auto-track AI coding sessions into a structured work impact log for performance reviews and weekly updates.",
+  "author": {
+    "name": "Antigravity Community"
+  },
+  "license": "MIT",
+  "keywords": ["antigravity", "brag-sheet", "impact-log", "developer-productivity", "work-tracker"]
+}

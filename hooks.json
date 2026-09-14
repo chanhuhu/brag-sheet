@@ -1,0 +1,16 @@
+{
+  "brag-sheet": {
+    "PostToolUse": [
+      {
+        "matcher": "run_command|write_to_file|replace_file_content|edit|create",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ./hooks/post-tool-use.mjs",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

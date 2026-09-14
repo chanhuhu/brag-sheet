@@ -1,0 +1,17 @@
+{
+  "name": "brag-sheet",
+  "version": "1.0.0",
+  "description": "Simple Antigravity plugin for brag-sheet with skills, hooks, and evals",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "keywords": [
+    "antigravity",
+    "brag-sheet",
+    "skills",
+    "hooks",
+    "evals"
+  ],
+  "license": "MIT"
+}

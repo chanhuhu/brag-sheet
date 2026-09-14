@@ -1,0 +1,74 @@
+{
+  "skill_name": "brag-sheet",
+  "version": "1.0.0",
+  "evals": [
+    {
+      "id": 1,
+      "name": "capture-single-impact",
+      "mode": "capture",
+      "register": "engineering-impact",
+      "prompt": "ฉันเพิ่งแก้ bug race condition ของ auth token ใน service จบ ช่วยบันทึกเข้า brag sheet หน่อย",
+      "expected_contract": {
+        "format": "Did [action] → [result/impact] → [evidence]",
+        "must_have_components": ["action", "result", "evidence"],
+        "category": "bugfix"
+      }
+    },
+    {
+      "id": 2,
+      "name": "anti-pattern-vague-input",
+      "mode": "capture",
+      "register": "engineering-impact",
+      "prompt": "อาทิตย์นี้ทำงานเรื่อง auth",
+      "expected_contract": {
+        "reject_vague_activity": true,
+        "must_prompt_for_evidence_or_mark": "(evidence needed)"
+      }
+    },
+    {
+      "id": 3,
+      "name": "backfill-git-history",
+      "mode": "backfill",
+      "register": "weekly-update",
+      "prompt": "ช่วยสรุปงาน 2 อาทิตย์ล่าสุดจาก git commits จัดกลุ่มแยกตามสัปดาห์และหมวดหมู่ให้ที",
+      "expected_contract": {
+        "group_by_week": true,
+        "group_related_commits": true,
+        "minimum_parts_per_entry": 3
+      }
+    },
+    {
+      "id": 4,
+      "name": "review-prep-star",
+      "mode": "review-prep",
+      "register": "performance-review",
+      "prompt": "กำลังเตรียมทำ performance review ปลายปี ช่วยสรุป Top 3 wins ออกมาในรูปแบบ STAR format",
+      "expected_contract": {
+        "star_structure": ["Situation", "Task", "Action", "Result"],
+        "organize_by_theme": true
+      }
+    },
+    {
+      "id": 5,
+      "name": "antigravity-tool-heuristics",
+      "mode": "heuristics",
+      "register": "lifecycle-hook",
+      "prompt": "ตรวจสอบการจำแนกเครื่องมือ Antigravity: write_to_file, replace_file_content, run_command",
+      "expected_contract": {
+        "classified_tools": ["write_to_file", "replace_file_content", "run_command"]
+      }
+    },
+    {
+      "id": 6,
+      "name": "thai-naturalness-no-emoji",
+      "mode": "review-prep",
+      "register": "explainer",
+      "prompt": "ช่วยสรุปผลงานเป็นภาษาไทยโดยไม่ใส่ emoji ตามหลัก kien-thai",
+      "expected_contract": {
+        "no_emoji": true,
+        "kien_thai_rules": true,
+        "format": "Did [action] → [result/impact] → [evidence]"
+      }
+    }
+  ]
+}
