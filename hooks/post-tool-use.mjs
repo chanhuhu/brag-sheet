@@ -4,13 +4,15 @@
  * @fileoverview Antigravity PostToolUse hook — classify tool calls for the brag sheet.
  *
  * Reads JSON hook payload from stdin, classifies tool calls (files created/edited,
- * git actions), and outputs a clean JSON response to stdout.
+ * git actions), persists receipts to a JSONL log, and outputs a clean JSON response to stdout.
  *
  * Designed to be 100% self-contained with zero runtime dependencies.
  *
  * @license MIT
  */
 
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -25,8 +27,11 @@ export function extractFilePath(toolArgs) {
 
 export function detectGitAction(command) {
   if (!command) return null;
-  if (/\bgit\b(?:\s+-[^\s]+|\s+--[^\s]+)*\s+commit\b/i.test(command)) return "git commit";
-  if (/\bgit\b(?:\s+-[^\s]+|\s+--[^\s]+)*\s+push\b/i.test(command)) return "git push";
+  if (/\bgh\s+pr\s+create\b/i.test(command)) return "gh pr create";
+  if (/\bgit\b(?:\s+(?:-[^\s]+|--[^\s]+|\S+=\S+))*\s+commit\b/i.test(command) ||
+      /\bgit\b\s+(?:-C\s+\S+\s+)?commit\b/i.test(command)) return "git commit";
+  if (/\bgit\b(?:\s+(?:-[^\s]+|--[^\s]+|\S+=\S+))*\s+push\b/i.test(command) ||
+      /\bgit\b\s+(?:-C\s+\S+\s+)?push\b/i.test(command)) return "git push";
   return null;
 }
 
@@ -52,6 +57,25 @@ export function classifyToolUse({ toolName, toolArgs }) {
   return { filesCreated, filesEdited, significantActions };
 }
 
+export function recordActivity(classification, options = {}) {
+  const logPath =
+    options.logPath ||
+    process.env.BRAG_SHEET_LOG_PATH ||
+    path.join(os.homedir(), ".antigravity-brag-sheet-activity.jsonl");
+
+  try {
+    const record = {
+      timestamp: new Date().toISOString(),
+      ...classification,
+    };
+    fs.appendFileSync(logPath, JSON.stringify(record) + "\n", "utf8");
+    return true;
+  } catch {
+    // Fault-tolerant: non-blocking on persistence failure
+    return false;
+  }
+}
+
 async function readStdin() {
   const chunks = [];
   for await (const chunk of process.stdin) {
@@ -62,6 +86,12 @@ async function readStdin() {
 
 async function main() {
   try {
+    // Guard against interactive hang if run directly in a terminal
+    if (process.stdin.isTTY) {
+      process.stdout.write("{}\n");
+      return;
+    }
+
     const raw = await readStdin();
     if (!raw.trim()) {
       process.stdout.write("{}\n");
@@ -80,6 +110,10 @@ async function main() {
       classification.filesCreated.length > 0 ||
       classification.filesEdited.length > 0 ||
       classification.significantActions.length > 0;
+
+    if (hasActivity) {
+      recordActivity(classification);
+    }
 
     const response = {
       continue: true,

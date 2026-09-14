@@ -1,11 +1,12 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, unlinkSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { classifyToolUse, extractFilePath, detectGitAction } from "../hooks/post-tool-use.mjs";
+import { classifyToolUse, extractFilePath, detectGitAction, recordActivity } from "../hooks/post-tool-use.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const pluginRoot = path.resolve(__dirname, "..");
@@ -68,11 +69,12 @@ describe("Skill Frontmatter & Specification (kien-thai style)", () => {
 
   it("contains essential trigger keywords in description", () => {
     const content = readFileSync(skillPath, "utf-8");
+    const fm = parseFrontmatter(content);
     const requiredKeywords = ["brag", "performance review", "weekly update", "impact"];
     for (const kw of requiredKeywords) {
       assert.ok(
-        content.toLowerCase().includes(kw.toLowerCase()),
-        `SKILL.md must include trigger keyword: ${kw}`
+        fm.description.toLowerCase().includes(kw.toLowerCase()),
+        `SKILL.md frontmatter description must include trigger keyword: ${kw}`
       );
     }
   });
@@ -207,12 +209,32 @@ describe("Antigravity Lifecycle Hook Classification", () => {
     assert.equal(extractFilePath({}), null);
   });
 
-  it("detectGitAction handles git commands with flags", () => {
+  it("detectGitAction handles git commands with flags and gh commands", () => {
     assert.equal(detectGitAction("git commit -m 'feat: add evals'"), "git commit");
     assert.equal(detectGitAction("git --no-pager commit -m 'test'"), "git commit");
+    assert.equal(detectGitAction("git -C /repo commit -m 'sub'"), "git commit");
     assert.equal(detectGitAction("git push origin main"), "git push");
     assert.equal(detectGitAction("git --force push"), "git push");
+    assert.equal(detectGitAction("gh pr create --title 'test'"), "gh pr create");
     assert.equal(detectGitAction("git status"), null);
+  });
+
+  it("recordActivity appends entries to specified logPath", () => {
+    const tmpLog = path.join(os.tmpdir(), `brag-activity-${Date.now()}.jsonl`);
+    try {
+      const recorded = recordActivity(
+        { filesCreated: ["/tmp/foo.js"], filesEdited: [], significantActions: [] },
+        { logPath: tmpLog }
+      );
+      assert.equal(recorded, true);
+      assert.ok(existsSync(tmpLog));
+      const content = readFileSync(tmpLog, "utf-8");
+      const parsed = JSON.parse(content.trim());
+      assert.deepEqual(parsed.filesCreated, ["/tmp/foo.js"]);
+      assert.ok(parsed.timestamp);
+    } finally {
+      if (existsSync(tmpLog)) unlinkSync(tmpLog);
+    }
   });
 
   it("executes hooks/post-tool-use.mjs via stdio as subprocess", async () => {

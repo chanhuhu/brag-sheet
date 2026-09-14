@@ -3,7 +3,7 @@ name: brag-sheet
 description: >-
   Use when the user asks to document, summarize, reconstruct, or organize
   engineering accomplishments, performance reviews, self-assessments, promo packets,
-  weekly status updates, or work history (e.g. "brag", "what did I do", "log my work",
+  weekly update reports, or work history (e.g. "brag", "what did I do", "log my work",
   "backfill work history", "accomplishments", "what did I ship", "review prep", "impact").
 license: MIT
 compatibility: 'Cross-platform (Windows, macOS, Linux). Works with Antigravity CLI and modern coding agents. Optional: git, gh CLI.'
@@ -126,9 +126,9 @@ Follow these steps in order. **Do not draft entries until scanning is complete.*
 #### Step 1: Scan available sources
 Check availability and mine each source:
 ```bash
-git --version 2>/dev/null                                   # for commit mining
-gh --version 2>/dev/null                                    # for PR mining
-ls -d ~/.gemini/antigravity-cli/brain/*/ 2>/dev/null | head # Antigravity session directories
+git --version 2>/dev/null                                     # for commit mining
+gh --version 2>/dev/null                                      # for PR mining
+ls -d ~/.gemini/antigravity*/brain/*/ 2>/dev/null | head      # Antigravity session directories
 ```
 
 - **Git commits** (user commits in current repo):
@@ -136,13 +136,13 @@ ls -d ~/.gemini/antigravity-cli/brain/*/ 2>/dev/null | head # Antigravity sessio
   git log --author="$(git config user.email)" --since="2 weeks ago" \
     --pretty=format:'%h|%ad|%s' --date=short --no-merges
   ```
-- **PR history** (merged PRs across repos):
+- **PR history** (merged PRs across repositories):
   ```bash
-  gh pr list --author @me --state merged --limit 20 \
+  gh search prs --author @me --state merged --limit 20 \
     --json number,title,repository,mergedAt
   ```
 - **Antigravity session history**:
-  - Path: `~/.gemini/antigravity-cli/brain/<conversation-id>/.system_generated/logs/transcript.jsonl`
+  - Path: `~/.gemini/antigravity*/brain/<conversation-id>/.system_generated/logs/transcript.jsonl`
   - Extract tool activity (`write_to_file`, `replace_file_content`, `run_command`) and workspace paths.
   - Skip sessions without meaningful code changes.
 
@@ -235,18 +235,18 @@ When writing, backfilling, or summarizing brag sheet entries and review packets 
 
 ### What goes wrong: No recent commits in current repo
 - **Symptom:** Git log returns empty or only initial commit.
-- **Fix:** Check `gh pr list --author @me --state merged` for cross-repo work, ask if another repo was used, or switch to the guided interview.
+- **Fix:** Check `gh search prs --author @me --state merged` for cross-repo work, ask if another repo was used, or switch to the guided interview.
 
 ### What goes wrong: Review period does not match git history
 - **Symptom:** Git history only has the last week, but review covers the full half or year.
-- **Fix:** Explicitly set `--since` and `--until` flags on `git log`, or rely on PR history which spans longer timeframes.
+- **Fix:** Explicitly set `--since` and `--until` flags on `git log`, or rely on PR search history (`gh search prs`) which spans longer timeframes across repositories.
 
 ### What goes wrong: User cannot quantify impact
 - **Symptom:** User says "I don't know the exact number" and feels stuck.
 - **Fix:** Refer to the Evidence Ladder. Strong qualitative evidence (PR link, runbook update, unblocking another engineer) is completely valid. Never force a fake metric.
 
 ### What goes wrong: Antigravity session directory is absent
-- **Symptom:** `ls ~/.gemini/antigravity-cli/brain/` returns not found.
+- **Symptom:** `ls ~/.gemini/antigravity*/brain/` returns not found.
 - **Fix:** Silently skip Antigravity session scanning and proceed with git and PR mining.
 
 ### What goes wrong: Ambiguous "brag" command
@@ -259,4 +259,4 @@ When writing, backfilling, or summarizing brag sheet entries and review packets 
 
 ## Automatic Session Tracking (Optional)
 
-For automatic background tracking of coding sessions (files edited, PRs created, git actions), install the brag-sheet plugin. It captures tool events silently via lifecycle hooks and maintains structured receipts of your work.
+For automatic background tracking of coding sessions (files edited, PRs created, git actions), install the brag-sheet plugin. It captures tool events silently via lifecycle hooks and persists structured receipts to `~/.antigravity-brag-sheet-activity.jsonl`.
