@@ -10,7 +10,13 @@ A zero-dependency, Antigravity-native plugin that turns AI coding sessions into 
 
 ## Installation
 
-Install directly into Antigravity CLI via:
+Install directly into Antigravity CLI from GitHub:
+
+```bash
+agy plugin install https://github.com/chanhuhu/brag-sheet
+```
+
+Or install from a local checkout:
 
 ```bash
 agy plugin install .
